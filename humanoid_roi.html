@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Robotics Startup ROI Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+    <style>
+        .output {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .card-header-title {
+            background-color: #add8e6; /* Light Blue */
+            color: white; /* Change text color if needed */
+        }
+    </style>
+</head>
+<body>
+<section class="section">
+    <div class="container">
+        <h1 class="title">Robotics Startup ROI Calculator</h1>
+        <div class="columns">
+            <div class="column is-half">
+                <!-- Robot Cost Card -->
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">Robot Cost</p>
+                    </header>
+                    <div class="card-content">
+                        <label class="label">Cost to build robot ($):</label>
+                        <input class="input" type="number" id="costToRun" value="60000">
+                        <label class="label">Lifetime of Robot (Years):</label>
+                        <input class="input" type="number" id="lifetime" value="3">
+                    </div>
+                </div>
+                <!-- Operating Costs Card -->
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">Operating Costs</p>
+                    </header>
+                    <div class="card-content">
+                        <label class="label">Annual Support (Repairs) Cost ($):</label>
+                        <input class="input" type="number" id="supportCost" value="6000">
+                        <label class="label">Annual Supervision Cost ($):</label>
+                        <input class="input" type="number" id="supervisionCost" value="2000">
+                    </div>
+                </div>
+                <!-- Value Created Card -->
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">Value Created</p>
+                    </header>
+                    <div class="card-content">
+                        <label class="label">Hourly Cost of Human Labor ($):</label>
+                        <input class="input" type="number" id="laborCost" value="30">
+                        <label class="label">Hours per Shift:</label>
+                        <input class="input" type="number" id="hoursPerShift" value="8">
+                        <label class="label">Shifts per Week:</label>
+                        <input class="input" type="number" id="shiftsPerWeek" value="6">
+                        <label class="label">Productivity Ratio (How much faster a human is):</label>
+                        <input class="input" type="number" id="productivityRatio" value="3">
+                        <label class="label">Flexibility Penalty (Time idle) (%):</label>
+                        <input class="input" type="number" id="flexibilityPenalty" value="15">
+                        <label class="label">Percent of Shift Spent Charging (%):</label>
+                        <input class="input" type="number" id="chargingPenalty" value="0">
+                    </div>
+                </div>
+                <br>
+                <button class="button is-primary" onclick="calculateROI()">Calculate ROI</button>
+            </div>
+            <div class="column is-half">
+                <div id="results">
+                    <p><strong>Annual Hardware Cost:</strong> <span id="hardwareCost" class="output">-</span></p>
+                    <p><strong>Annual Operating Cost:</strong> <span id="operatingCost" class="output">-</span></p>
+                    <p><strong>Annual Value Created:</strong> <span id="valueCreated" class="output">-</span></p>
+                    <p><strong>ROI (%):</strong> <span id="roi" class="output">-</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const inputs = document.querySelectorAll('.input');
+        inputs.forEach(input => {
+            input.addEventListener('change', calculateROI);
+        });
+    });
+    function calculateROI() {
+        const costToRun = parseFloat(document.getElementById('costToRun').value);
+        const lifetime = parseFloat(document.getElementById('lifetime').value);
+        const supportCost = parseFloat(document.getElementById('supportCost').value);
+        const supervisionCost = parseFloat(document.getElementById('supervisionCost').value);
+        const laborCost = parseFloat(document.getElementById('laborCost').value);
+        const hoursPerShift = parseFloat(document.getElementById('hoursPerShift').value);
+        const shiftsPerWeek = parseFloat(document.getElementById('shiftsPerWeek').value);
+        const productivityRatio = parseFloat(document.getElementById('productivityRatio').value);
+        const flexibilityPenalty = parseFloat(document.getElementById('flexibilityPenalty').value);
+        const chargingPenalty = parseFloat(document.getElementById('chargingPenalty').value);
+
+        const annualHardwareCost = costToRun / lifetime;
+        const totalOperatingCost = annualHardwareCost + supportCost + supervisionCost;
+        const totalLaborCost = laborCost * hoursPerShift * shiftsPerWeek * 52; // 52 weeks per year
+        const adjustedLaborCost = totalLaborCost / productivityRatio;
+        const flexibleLaborCost = adjustedLaborCost - (adjustedLaborCost * (flexibilityPenalty + chargingPenalty) / 100);
+        const valueCreated = flexibleLaborCost - totalOperatingCost;
+        const roi = (valueCreated / totalOperatingCost) * 100;
+
+        document.getElementById('hardwareCost').textContent = "$" + annualHardwareCost.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        document.getElementById('operatingCost').textContent = "$" + (supportCost + supervisionCost).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        document.getElementById('valueCreated').textContent = "$" + flexibleLaborCost.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        document.getElementById('roi').textContent = roi.toFixed(2) + '%';
+    }
+    calculateROI()
+</script>
+</body>
+</html>
