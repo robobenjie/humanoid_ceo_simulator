@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Robotics Startup ROI Calculator</title>
+    <title>Robotics Startup CEO Simulator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
     <style>
         .output {
@@ -10,22 +10,42 @@
         }
         .card-header-title {
             background-color: #add8e6; /* Light Blue */
-            color: white; /* Change text color if needed */
+            color: rgb(39, 39, 39); /* Change text color if needed */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .card-content {
+            overflow: hidden;
+            transition: max-height 0.25s ease-out, padding-top 0.25s ease-out, padding-bottom 0.25s ease-out;
+        }
+
+        /* Style when content is expanded */
+        .card-content.collapsed {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        .in-the-red {
+            color: red;
         }
     </style>
 </head>
 <body>
 <section class="section">
     <div class="container">
-        <h1 class="title">Robotics Startup ROI Calculator</h1>
+        <h1 class="title">Robotics Startup CEO Simulator    </h1>
         <div class="columns">
             <div class="column is-half">
                 <!-- Robot Cost Card -->
                 <div class="card">
-                    <header class="card-header">
-                        <p class="card-header-title">Robot Cost</p>
+                    <header class="card-header" onclick="toggleCard('robotCostContent')">
+                        <p class="card-header-title">
+                            Annual Hardware Cost: <span id="headerHardwareCost">-</span>
+                        </p>
                     </header>
-                    <div class="card-content">
+                    <div class="card-content" id="robotCostContent">
                         <label class="label">Cost to build robot ($):</label>
                         <input class="input" type="number" id="costToRun" value="60000">
                         <label class="label">Lifetime of Robot (Years):</label>
@@ -34,22 +54,46 @@
                 </div>
                 <!-- Operating Costs Card -->
                 <div class="card">
-                    <header class="card-header">
-                        <p class="card-header-title">Operating Costs</p>
+                    <header class="card-header" onclick="toggleCard('operatingCostCard')">
+                        <p class="card-header-title">
+                            Operating Costs: <span id="headerOperatingCost">-</span>
+                        </p>
                     </header>
-                    <div class="card-content">
-                        <label class="label">Annual Support (Repairs) Cost ($):</label>
-                        <input class="input" type="number" id="supportCost" value="6000">
-                        <label class="label">Annual Supervision Cost ($):</label>
-                        <input class="input" type="number" id="supervisionCost" value="2000">
+                    <div class="card-content" id="operatingCostCard">
+                        <label class="label">Number of repairs or services per year:</label>
+                        <input class="input" type="number" id="repairsPerYear" value="2">
+                        <label class="label">Cost per repair or service ($):</label>
+                        <input class="input" type="number" id="costPerRepair" value="300">
+                        <label class="label">Shipping cost (each way) ($):</label>
+                        <input class="input" type="number" id="shippingCost" value="300">
+                        <label class="label">Days of downtime for repair:</label>
+                        <input class="input" type="number" id="daysLost" value="7">
+                        <h3 class="title is-5 has-text-primary has-text-weight-bold">
+                            Total Cost of Repair <span id="serviceCost">--</span>
+                        </h3>
+                        <label class="label">Number of robots per remote supervisor:</label>
+                        <input class="input" type="number" id="robotsPerSupervisor" value="50">
+                        <label class="label">Annual cost of remote supervisor ($):</label>
+                        <input class="input" type="number" id="remoteSupervisorCost" value="50000">
+                        <label class="label">Percent of one onsite IT person's time (%):</label>
+                        <input class="input" type="number" id="itPersonFraction" value="10">
+                        <label class="label">Cost of IT person per year ($):</label>
+                        <input class="input" type="number" id="itPersonCost" value="200000">
+                        <label class="label">Number of robots in a deployment:</label>
+                        <input class="input" type="number" id="robotsPerDeployment" value="20">
+                        <h3 class="title is-5 has-text-primary has-text-weight-bold">
+                            Total Cost of Supervision <span id="supervisionCost">--</span>
+                        </h3>
                     </div>
                 </div>
                 <!-- Value Created Card -->
                 <div class="card">
-                    <header class="card-header">
-                        <p class="card-header-title">Value Created</p>
+                    <header class="card-header" onclick="toggleCard('valueCreatedCard')">
+                        <p class="card-header-title">
+                            Value Created: <span id="headerValueCreated">-</span>
+                        </p>
                     </header>
-                    <div class="card-content">
+                    <div class="card-content" id="valueCreatedCard">
                         <label class="label">Hourly Cost of Human Labor ($):</label>
                         <input class="input" type="number" id="laborCost" value="30">
                         <label class="label">Hours per Shift:</label>
@@ -65,13 +109,12 @@
                     </div>
                 </div>
                 <br>
-                <button class="button is-primary" onclick="calculateROI()">Calculate ROI</button>
             </div>
             <div class="column is-half">
                 <div id="results">
-                    <p><strong>Annual Hardware Cost:</strong> <span id="hardwareCost" class="output">-</span></p>
-                    <p><strong>Annual Operating Cost:</strong> <span id="operatingCost" class="output">-</span></p>
+                    <p><strong>Total Annual Cost:</strong> <span id="totalCost" class="output">-</span></p>
                     <p><strong>Annual Value Created:</strong> <span id="valueCreated" class="output">-</span></p>
+                    <p><strong>Net Value per Robot:</strong> <span id="netValueCreated" class="output">-</span></p>
                     <p><strong>ROI (%):</strong> <span id="roi" class="output">-</span></p>
                 </div>
             </div>
@@ -86,17 +129,42 @@
             input.addEventListener('change', calculateROI);
         });
     });
+    function toggleCard(contentId) {
+    var content = document.getElementById(contentId);
+        if (content.classList.contains('collapsed')) {
+            content.classList.remove('collapsed');
+        } else {
+            content.classList.add('collapsed');  // This class adds padding
+        }
+    }
     function calculateROI() {
         const costToRun = parseFloat(document.getElementById('costToRun').value);
         const lifetime = parseFloat(document.getElementById('lifetime').value);
-        const supportCost = parseFloat(document.getElementById('supportCost').value);
-        const supervisionCost = parseFloat(document.getElementById('supervisionCost').value);
         const laborCost = parseFloat(document.getElementById('laborCost').value);
         const hoursPerShift = parseFloat(document.getElementById('hoursPerShift').value);
         const shiftsPerWeek = parseFloat(document.getElementById('shiftsPerWeek').value);
         const productivityRatio = parseFloat(document.getElementById('productivityRatio').value);
         const flexibilityPenalty = parseFloat(document.getElementById('flexibilityPenalty').value);
         const chargingPenalty = parseFloat(document.getElementById('chargingPenalty').value);
+
+        const repairsPerYear = parseFloat(document.getElementById('repairsPerYear').value);
+        const costPerRepair = parseFloat(document.getElementById('costPerRepair').value);
+        const shippingCost = parseFloat(document.getElementById('shippingCost').value);
+        const daysLost = parseFloat(document.getElementById('daysLost').value);
+
+        const valuePerDay = laborCost * hoursPerShift * shiftsPerWeek / 52;
+        const serviceCost = repairsPerYear * (costPerRepair + 2 * shippingCost) + (daysLost * valuePerDay);
+        document.getElementById('serviceCost').textContent = "$" + serviceCost.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+
+        const robotsPerSupervisor = parseFloat(document.getElementById('robotsPerSupervisor').value);
+        const remoteSupervisorCost = parseFloat(document.getElementById('remoteSupervisorCost').value);
+        const itPersonFraction = parseFloat(document.getElementById('itPersonFraction').value);
+        const robotsPerDeployment = parseFloat(document.getElementById('robotsPerDeployment').value);
+        const itPersonCost = parseFloat(document.getElementById('itPersonCost').value);
+        const supervisionCost = remoteSupervisorCost / robotsPerSupervisor + itPersonFraction * itPersonCost / robotsPerDeployment / 100;
+        document.getElementById('supervisionCost').textContent = "$" + supervisionCost.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+
+        const supportCost = serviceCost + supervisionCost;
 
         const annualHardwareCost = costToRun / lifetime;
         const totalOperatingCost = annualHardwareCost + supportCost + supervisionCost;
@@ -106,10 +174,26 @@
         const valueCreated = flexibleLaborCost - totalOperatingCost;
         const roi = (valueCreated / totalOperatingCost) * 100;
 
-        document.getElementById('hardwareCost').textContent = "$" + annualHardwareCost.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
-        document.getElementById('operatingCost').textContent = "$" + (supportCost + supervisionCost).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+
+        document.getElementById('headerOperatingCost').textContent = "$" + (supportCost + supervisionCost).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        document.getElementById('headerValueCreated').textContent = "$" + flexibleLaborCost.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        document.getElementById('headerHardwareCost').textContent = "$" + annualHardwareCost.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+
         document.getElementById('valueCreated').textContent = "$" + flexibleLaborCost.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        document.getElementById('totalCost').textContent = "$" + (serviceCost + annualHardwareCost).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        document.getElementById('netValueCreated').textContent = "$" + valueCreated.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
         document.getElementById('roi').textContent = roi.toFixed(2) + '%';
+        if (roi < 0) {
+            document.getElementById('roi').classList.add('in-the-red');
+        } else {
+            document.getElementById('roi').classList.remove('in-the-red');
+        }
+        if (valueCreated < 0) {
+            document.getElementById('netValueCreated').classList.add('in-the-red');
+        } else {
+            document.getElementById('netValueCreated').classList.remove('in-the-red');
+        }
+
     }
     calculateROI()
 </script>
