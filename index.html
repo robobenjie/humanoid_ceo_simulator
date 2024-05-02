@@ -153,7 +153,7 @@
         const daysLost = parseFloat(document.getElementById('daysLost').value);
 
         const valuePerDay = laborCost * hoursPerShift * shiftsPerWeek / 52;
-        const serviceCost = repairsPerYear * (costPerRepair + 2 * shippingCost) + (daysLost * valuePerDay);
+        const serviceCost = repairsPerYear * (costPerRepair + 2 * shippingCost + daysLost * valuePerDay);
         document.getElementById('serviceCost').textContent = "$" + serviceCost.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
 
         const robotsPerSupervisor = parseFloat(document.getElementById('robotsPerSupervisor').value);
@@ -167,7 +167,7 @@
         const supportCost = serviceCost + supervisionCost;
 
         const annualHardwareCost = costToRun / lifetime;
-        const totalOperatingCost = annualHardwareCost + supportCost + supervisionCost;
+        const totalOperatingCost = annualHardwareCost + supportCost;
         const totalLaborCost = laborCost * hoursPerShift * shiftsPerWeek * 52; // 52 weeks per year
         const adjustedLaborCost = totalLaborCost / productivityRatio;
         const flexibleLaborCost = adjustedLaborCost - (adjustedLaborCost * (flexibilityPenalty + chargingPenalty) / 100);
@@ -175,12 +175,12 @@
         const roi = (valueCreated / totalOperatingCost) * 100;
 
 
-        document.getElementById('headerOperatingCost').textContent = "$" + (supportCost + supervisionCost).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        document.getElementById('headerOperatingCost').textContent = "$" + (supportCost).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
         document.getElementById('headerValueCreated').textContent = "$" + flexibleLaborCost.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
         document.getElementById('headerHardwareCost').textContent = "$" + annualHardwareCost.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
 
         document.getElementById('valueCreated').textContent = "$" + flexibleLaborCost.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
-        document.getElementById('totalCost').textContent = "$" + (serviceCost + annualHardwareCost).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        document.getElementById('totalCost').textContent = "$" + (totalOperatingCost).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
         document.getElementById('netValueCreated').textContent = "$" + valueCreated.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
         document.getElementById('roi').textContent = roi.toFixed(2) + '%';
         if (roi < 0) {
