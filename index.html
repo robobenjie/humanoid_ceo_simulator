@@ -45,7 +45,7 @@
                             Annual Hardware Cost: <span id="headerHardwareCost">-</span>
                         </p>
                     </header>
-                    <div class="card-content" id="robotCostContent">
+                    <div class="card-content collapsed" id="robotCostContent">
                         <label class="label">Cost to build robot ($):</label>
                         <input class="input" type="number" id="costToRun" value="60000">
                         <label class="label">Lifetime of Robot (Years):</label>
@@ -59,7 +59,7 @@
                             Operating Costs: <span id="headerOperatingCost">-</span>
                         </p>
                     </header>
-                    <div class="card-content" id="operatingCostCard">
+                    <div class="card-content collapsed" id="operatingCostCard">
                         <label class="label">Number of repairs or services per year:</label>
                         <input class="input" type="number" id="repairsPerYear" value="2">
                         <label class="label">Cost per repair or service ($):</label>
@@ -93,7 +93,7 @@
                             Value Created: <span id="headerValueCreated">-</span>
                         </p>
                     </header>
-                    <div class="card-content" id="valueCreatedCard">
+                    <div class="card-content collapsed" id="valueCreatedCard">
                         <label class="label">Hourly Cost of Human Labor ($):</label>
                         <input class="input" type="number" id="laborCost" value="30">
                         <label class="label">Hours per Shift:</label>
@@ -119,16 +119,59 @@
                 </div>
             </div>
         </div>
+        <button class="button is-info" onclick="generateShareLink()">Share These Values</button>
+        <p> This tool is part of a <a href="https://open.substack.com/pub/generalrobots/p/humanoid-robots-dollars-and-gpts?r=5gs4m&utm_campaign=post&utm_medium=web">blog post</a> about the economics of humanoid robots.
+        If you somehow got here without seeing the blog post, I recommend you go there and read about it. There are cartoons!</p>
     </div>
+
 </section>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        loadValuesFromURI();
         const inputs = document.querySelectorAll('.input');
         inputs.forEach(input => {
             input.addEventListener('change', calculateROI);
         });
+        calculateROI();
     });
+
+    function loadValuesFromURI() {
+        console.log("Loading values from URI")
+        const queryParams = new URLSearchParams(window.location.search);
+        queryParams.forEach((value, key) => {
+            const input = document.getElementById(key);
+            if (input) {
+                input.value = value;
+            }
+        });
+    }
+
+    function generateShareLink() {
+        const params = new URLSearchParams({
+            costToRun: document.getElementById('costToRun').value,
+            lifetime: document.getElementById('lifetime').value,
+            laborCost: document.getElementById('laborCost').value,
+            hoursPerShift: document.getElementById('hoursPerShift').value,
+            shiftsPerWeek: document.getElementById('shiftsPerWeek').value,
+            productivityRatio: document.getElementById('productivityRatio').value,
+            flexibilityPenalty: document.getElementById('flexibilityPenalty').value,
+            chargingPenalty: document.getElementById('chargingPenalty').value,
+            repairsPerYear: document.getElementById('repairsPerYear').value,
+            costPerRepair: document.getElementById('costPerRepair').value,
+            shippingCost: document.getElementById('shippingCost').value,
+            daysLost: document.getElementById('daysLost').value,
+            robotsPerSupervisor: document.getElementById('robotsPerSupervisor').value,
+            remoteSupervisorCost: document.getElementById('remoteSupervisorCost').value,
+            itPersonFraction: document.getElementById('itPersonFraction').value,
+            robotsPerDeployment: document.getElementById('robotsPerDeployment').value,
+            itPersonCost: document.getElementById('itPersonCost').value
+        }).toString();
+        const shareUrl = window.location.href.split('?')[0] + '?' + params;
+        navigator.clipboard.writeText(shareUrl);
+        alert("Link copied to clipboard!");
+    }
+
     function toggleCard(contentId) {
     var content = document.getElementById(contentId);
         if (content.classList.contains('collapsed')) {
